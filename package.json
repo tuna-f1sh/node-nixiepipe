@@ -1,0 +1,19 @@
+{
+  "name": "nixie-pipe",
+  "version": "0.0.1",
+  "description": "Nixie Pipe Node.js module",
+  "main": "main.js",
+  "scripts": {
+    "test": "vows --spec --isolate",
+    "start": "node main.js"
+  },
+  "author": "John Whittington",
+  "license": "GPL-3.0",
+  "contributors": [{
+    "name": "John Whittington",
+    "email": "john@jbrengineering.co.uk"
+}],
+  "dependencies": {
+    "serialport": "^4.0.6"
+  }
+}

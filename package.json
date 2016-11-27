@@ -1,18 +1,20 @@
 {
-  "name": "nixie-pipe",
+  "name": "nixiepipe",
   "version": "0.0.1",
   "description": "Nixie Pipe Node.js module",
   "main": "main.js",
+  "homepage": "http://www.nixiepipe.com",
+  "author": "John Whittington <john@jbrengineering.co.uk> (http://jbrengineering.com)",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tuna-f1sh/node-nixiepipe.git"
+  },
+  "main": "nixiepipe.js",
   "scripts": {
     "test": "vows --spec --isolate",
-    "start": "node main.js"
+    "start": "node examples/test.js"
   },
-  "author": "John Whittington",
-  "license": "GPL-3.0",
-  "contributors": [{
-    "name": "John Whittington",
-    "email": "john@jbrengineering.co.uk"
-}],
   "dependencies": {
     "serialport": "^4.0.6"
   }

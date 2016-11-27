@@ -29,7 +29,7 @@ var NIXIE_RES = {};
 
 /**
  * Handles connect handshake, retrieving version from reply.
- * @param {NixiePipe} The current Nixie Pipe Master.
+ * @param {NixiePipe} pipe The current Nixie Pipe Master.
  */
 
 NIXIE_RES[COMMANDS.CONNECT] = function(pipe) {
@@ -47,7 +47,7 @@ NIXIE_RES[COMMANDS.CONNECT] = function(pipe) {
 
 /**
  * Handles `getNumber` reply, updating ''number'' property and emits event to signal update.
- * @param {NixiePipe} The current Nixie Pipe Master.
+ * @param {NixiePipe} pipe The current Nixie Pipe Master.
  */
 
 NIXIE_RES[COMMANDS.GETNUMBER] = function(pipe) {
@@ -334,20 +334,4 @@ NixiePipe.prototype.getNumber = function(callback) {
   this.once("updated", callback);
 };
 
-var pipes = new NixiePipe();
-
-pipes.once("connected", function() {
-  pipes.setNumber(990);
-  pipes.show();
-  pipes.setNumber(991);
-  pipes.show();
-  pipes.setNumber(992);
-  pipes.show();
-  pipes.setColour(0,0,255);
-  pipes.show();
-  for (var x = 0; x < 9999; x++) {
-    pipes.setNumber(x);
-    pipes.show();
-  }
-});
-
+module.exports = NixiePipe;

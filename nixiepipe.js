@@ -2,7 +2,6 @@
 var Emitter = require("events").EventEmitter;
 // External Dependancies
 var SerialPort = require('serialport');
-// var Queue = require('queue');
 
 // Nixie Pipe commands
 var COMMANDS = {
@@ -36,10 +35,11 @@ NIXIE_RES[COMMANDS.CONNECT] = function(pipe) {
   if (pipe.packet.size == 2) {
     major = pipe.packet.message[1];
     minor = pipe.packet.message[0];
-    version = major + '.' + minor;
-    console.log('Connected to Nixie Pipe version: ' + version);
+    pipe.version = major + '.' + minor;
+    console.log('Connected to Nixie Pipe version: ' + pipe.version);
     pipe.emit('connected');
     pipe.connected = true;
+    // pipe.ready();
   } else {
     pipe.emit('error', new Error('Invalid connection handshake!!'));
   }
@@ -63,19 +63,32 @@ NIXIE_RES[COMMANDS.GETNUMBER] = function(pipe) {
  */
 
 function autoSerial(port, callback) {
+  var ret = null;
+  
   if (typeof port === "undefined") {
     SerialPort.list( function(err, ports) {
+      if (err) {
+        callback(err, null);
+      }
       ports.forEach(function(x) {
         if (typeof x.manufacturer !== "undefined") {
           if (x.manufacturer.match('JBR Engineering')) {
-            return callback(x.comName);
+            ret = x.comName;
           }
         }
       });
+      if (ret === null) {
+        return callback(new Error('Could not find Nixie Pipe!'), null);
+      } else {
+        return callback(null, ret);
+      }
     });
   } else {
-    return callback(port);
+    return callback(null, port);
   }
+
+  // not found, return error
+  // return callback(new Error('Could not find Nixie Pipe!'), null);
 }
 
 /**
@@ -125,11 +138,21 @@ function NixiePipe(port, callback) {
   
   var pipe = this;
 
-  autoSerial(port, function(port) {
+  autoSerial(port, function(err, port) {
+    if (err) {
+      this.emit('error', err);
+      return;
+    }
+
     if (typeof port === "object") {
       this.serial = port;
     } else {
-      this.serial = new SerialPort(port, defaults.portSettings);
+      this.serial = new SerialPort(port, defaults.portSettings, function(err) {
+        if (err) {
+          this.emit("error", err);
+          return;
+        }
+      });
     }
 
     // Open port and connect to pipe when open
@@ -171,6 +194,7 @@ function NixiePipe(port, callback) {
       } else {
         // if not, disable the queue
         this._busy = false;
+        this.emit('free');
       }
 
     }.bind(this));
@@ -178,10 +202,15 @@ function NixiePipe(port, callback) {
 
     this.serial.on("close", function() {
       this.emit("close");
+      console.log("close");
     }.bind(this));
 
     this.serial.on("disconnect", function() {
+      this.connected = false;
+      this._busy = false;
+      this._queue = [];
       this.emit("disconnect");
+      console.log("disconnect");
     }.bind(this));
 
     this.serial.on("error", function(error) {
@@ -199,6 +228,12 @@ function NixiePipe(port, callback) {
     pipe.sendcommand(COMMANDS.CONNECT, new Buffer([0x4E, 0x50]), 2);
   };
 
+  // Run callback when ready
+  // this.ready( function() {
+  //   if (typeof callback === "function") {
+  //     callback();
+  //   }
+  // });
 }
 
 NixiePipe.prototype = Object.create(Emitter.prototype, {
@@ -225,6 +260,7 @@ NixiePipe.prototype.sendcommand = function(command, message, size) {
     this._busy = true;
     if (this.debug) console.log("Writing serial data: " + packet.toString('hex'));
     this.serial.write(packet);
+    this.emit('busy');
   }
 };
 
@@ -332,6 +368,15 @@ NixiePipe.prototype.setBrightness = function(value) {
 NixiePipe.prototype.getNumber = function(callback) {
   this.sendcommand(COMMANDS.GETNUMBER, new Buffer([1]), 1);
   this.once("updated", callback);
+};
+
+/**
+ * Close the serial port ready to clear object
+ * @param {function} callback to call when port closed
+ */
+
+NixiePipe.prototype.close = function(callback) {
+  this.serial.close(callback);
 };
 
 module.exports = NixiePipe;

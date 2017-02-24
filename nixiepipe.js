@@ -379,6 +379,15 @@ NixiePipe.prototype.setBrightness = function(value) {
 };
 
 /**
+ * Set number of unit modules.
+ * @param {int} number of unit modules (default 0)
+ */
+
+NixiePipe.prototype.setNumberUnits = function(value) {
+  this.sendcommand(COMMANDS.SETNUMBERUNITS, new Buffer([value]), 1);
+};
+
+/**
  * Update this.number with value reported by firmware.
  * @param {function} callback Function to call when firmware replies with value.
  * @return {int} Number being displated on Nixie Pipe array.

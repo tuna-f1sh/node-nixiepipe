@@ -1,6 +1,6 @@
 {
   "name": "nixiepipe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Nixie Pipe Node.js module",
   "main": "nixiepipe.js",
   "homepage": "http://www.nixiepipe.com",

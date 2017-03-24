@@ -89,13 +89,16 @@ function autoSerial(port, callback) {
       if (err) {
         callback(err, null);
       }
+      console.log(ports);
+
       ports.forEach(function(x) {
         if (typeof x.manufacturer !== "undefined") {
-          if (x.manufacturer.match('JBR Engineering')) {
+          if (x.manufacturer.match('JBR Engineering') || x.serialNumber.includes('JBRNP')) {
             ret = x.comName;
           }
         }
       });
+
       if (ret === null) {
         return callback(new Error('Could not find Nixie Pipe!'), null);
       } else {
@@ -179,7 +182,7 @@ function NixiePipe(port, callback) {
       if (this.debug) console.log('Serial port open @: ' + defaults.portSettings.baudRate);
       this.emit("open");
 
-      connect();
+      setTimeout(connect, 2000);
     }.bind(this));
 
     // Act on data recieved and send queue'd data if there is some
